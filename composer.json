@@ -1,0 +1,20 @@
+{
+    "name": "yetione/php-json",
+    "description": "PHP JSON encode/decode module",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "yeti",
+            "email": "jub45@yandex.ru"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": "^7.4|^8",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "psr-4": { "Yetione\\Json\\": "src/"}
+    }
+}
