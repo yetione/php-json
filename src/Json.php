@@ -3,6 +3,10 @@
 
 namespace Yetione\Json;
 
+use Yetione\Json\Exceptions\DecodeException;
+use Yetione\Json\Exceptions\EncodeException;
+use Yetione\Json\Exceptions\ExtensionException;
+
 /**
  * Class Json
  * @package Yetione\Json
@@ -28,6 +32,7 @@ class Json
      * @param int|null $depth
      * @param int|null $encodeOptions
      * @param int|null $decodeOptions
+     * @throws ExtensionException
      */
     public function __construct(int $depth=null, int $encodeOptions=null, int $decodeOptions=null)
     {
@@ -40,17 +45,14 @@ class Json
     /**
      * @param mixed $value
      * @return string
-     * @throws JsonException
+     * @throws EncodeException
      */
     public function encodeValue($value)
     {
         $json = json_encode($value, $this->encodeOptions, $this->depth);
-
-        $error = json_last_error();
-        if ($error !== JSON_ERROR_NONE) {
-            throw JsonException::encoding($value, $error);
+        if (JSON_ERROR_NONE !== ($error = json_last_error())) {
+            throw new EncodeException($value, $error);
         }
-
         return $json;
     }
 
@@ -58,14 +60,13 @@ class Json
      * @param string $value
      * @param bool $asArray
      * @return mixed
-     * @throws JsonException
+     * @throws DecodeException
      */
     public function decodeValue(string $value, bool $asArray=false)
     {
         $result = json_decode($value, $asArray, $this->depth, $this->decodeOptions);
-        $error = json_last_error();
-        if ($error !== JSON_ERROR_NONE) {
-            throw JsonException::decoding($result, $error);
+        if (JSON_ERROR_NONE !== ($error = json_last_error())) {
+            throw new DecodeException($value, $error);
         }
         return $result;
     }
@@ -74,7 +75,8 @@ class Json
      * Encode PHP value to JSON string.
      * @param mixed $value
      * @return string
-     * @throws JsonException
+     * @throws EncodeException
+     * @throws ExtensionException
      */
     public static function encode($value): string
     {
@@ -87,21 +89,30 @@ class Json
      * @param string $value
      * @param bool $asArray
      * @return mixed
-     * @throws JsonException
+     * @throws DecodeException
+     * @throws ExtensionException
      */
     public static function decode(string $value, bool $asArray=false)
     {
         return static::getInstance()->decodeValue($value, $asArray);
     }
 
+    /**
+     * @return bool
+     * @throws ExtensionException
+     */
     protected static function checkExt(): bool
     {
         if (!extension_loaded('json')) {
-            throw JsonException::extensionIsMissing();
+            throw new ExtensionException();
         }
         return true;
     }
 
+    /**
+     * @return static
+     * @throws ExtensionException
+     */
     protected static function getInstance(): self
     {
         if (!isset(static::$instance)) {
