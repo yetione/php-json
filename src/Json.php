@@ -49,6 +49,14 @@ class Json
      */
     public function encodeValue($value)
     {
+        if (is_object($value)) {
+            if (($value instanceof Jsonable) || method_exists($value, 'toJson')) {
+                return $value->toJson();
+            }
+//            if (method_exists($value, 'toArray')) {
+//                return $this->encodeValue($value->toArray());
+//            }
+        }
         $json = json_encode($value, $this->encodeOptions, $this->depth);
         if (JSON_ERROR_NONE !== ($error = json_last_error())) {
             throw new EncodeException($value, $error);
